@@ -1,0 +1,130 @@
+---
+title: "Advanced Computing - Data wrangling and Plotting"
+author: "Brock"
+date: "9/11/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r packages}
+library(tidyverse) #Tidy functionality
+library(dplyr) #dplyr functionality (piping)
+library(here) #Helps clean pathing
+library(knitr) #Rmd output
+```
+
+#Data wrangling
+Just importing some data :)
+
+```{r Data wrangling}
+pubs_path <- "D:/UChicago/BSD-QBio_2020/BSD-QBio6/tutorials/advanced_computing/data/UC_Nat_Sci_1999-2019.csv"
+
+pubs <- read.csv(pubs_path) #Reads publication data
+```
+
+#A new data type
+Checking out tibbles :)
+
+```{r A new data type}
+is.data.frame(pubs) #True
+
+pubs <- read_csv(pubs_path) #Overreads publication data as tibble. Yay!
+
+head(pubs) #Shows first few rows
+tail(pubs) #Shows last few rows
+glimpse(pubs) #Shows summary of data (kinda like str in base R)
+view(pubs) #See spreadsheet-like window
+```
+
+#Selecting rows and columns
+Filtering data :)
+
+```{r Selecting rows and columns}
+filter(pubs, Year > 2009) %>% glimpse() #Shows publications from 2010 onward
+
+filter(pubs, Year == 2008, 'Source title' == "Nature", 'Cited by' > 100) %>% glimpse() #Publication in Nature from 2008 with more than 100 citations
+
+select(pubs, Authors, Title) %>% glimpse() #Shows only Authors and Title column
+
+distinct(select(pubs,Year)) %>% glimpse() #Shows distinct years
+```
+
+#Creating pipelines using %>%
+Pipelines are a great way to improve readability :)
+
+```{r Creating Pipelines %>%}
+pubs %>%
+  select(Year) %>%
+  distinct() %>% glimpse() #Selects distinct years, and glimpses the tibble
+```
+
+#Producing summaries
+Calculate statistics using summarise :)
+Statistics include: first, last, min, max, n [count the number of rows], n_distinct [count the number of distinct rows], mean, median, var, sd, etc..
+
+```{r Producing summaries}
+pubs %>% summarise(avg = mean(`Cited by`)) # 294.8619
+
+pubs %>%  summarise(avg = mean(`Cited by`),
+                    sd = sd(`Cited by`),
+                    median = median(`Cited by`)) #sd = 589.0192, median = 137
+```
+
+#Summaries by group
+Calculate statistics of certain groups :)
+
+```{r Summaries by group}
+pubs %>%
+  group_by(`Source title`, Year) %>%
+  summarise(avg = mean(`Cited by`))
+
+#Excercise: count the number of articles by UofC researcher in Nature and Science by Source title and Year
+
+pubs %>%
+  group_by(`Source title`, Year) %>%
+  summarise("Total UofC Articles" = n())
+```
+
+#Ordering the data
+Use arrange(...) or arrange(desc(...)) :)
+
+```{r Ordering the data}
+pubs %>% select(Title, `Cited by`) %>% arrange(`Cited by`) %>% glimpse() #Low to high top to bottom
+
+pubs %>% select(Title, `Cited by`) %>% arrange(desc(`Cited by`)) %>% glimpse() #High to low top to bottom
+```
+
+#Renaming columns
+Use rename(...) to rename columns :)
+
+```{r Renaming columns}
+pubs %>% rename(Cites = `Cited by`) #Will not overwrite
+
+pubs <- pubs %>% rename(Citations = `Cited by`, Journal = `Source title`) #Overwrites data
+```
+
+#Adding new variables using mutate
+Use mutate() to add one or more new columns
+
+```{r Mutate}
+pubs <- pubs %>% mutate(Num_authors = str_count(Authors, ",") + 1) %>% glimpse()
+
+pubs %>%
+  group_by(Year) %>% #group papers by year
+  mutate(pr = percent_rank(Citations)) %>% #compute % rank by Citations
+  ungroup() %>% #remove group information
+  arrange(Year, desc(pr), Authors) %>% #order by year then % rank (decreasing)
+  head(20)
+```
+
+#Data plotting
+Visualize your data :)
+
+```{r Basing plotting}
+
+```
